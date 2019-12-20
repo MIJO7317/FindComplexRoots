@@ -5,9 +5,8 @@
 #include<cmath>
 #include<vector>
 
-using namespace std;
-
 #define pi long double(4*atan(1))
+#define e long double(exp(1))
 
 FunctionParser_cld fparser;
 std::string function;
@@ -37,23 +36,20 @@ namespace FindCR
 	void FindRoots(long double radius_square, long double epsilon, long double x0, long double y0, std::vector<complex> &roots)
 	{
 		complex z_prev(0,0), z_curr;
-		long double sum = 0;
-		for (long double alpha = 0; alpha < 2 * pi; alpha += 0.01)
+		long double sum = 0, d_alpha = 0.01;;
+		for (long double alpha = 0; alpha < 2 * pi; alpha += d_alpha)
 		{
 			long double real = x0 + radius_square * cosl(alpha) / std::fmaxl(fabsl(sinl(alpha)), fabsl(cosl(alpha)));
 			long double imag = y0 + radius_square * sinl(alpha) / std::fmaxl(fabsl(sinl(alpha)), fabsl(cosl(alpha)));
 			z_curr = complex(real,imag);
 			z_curr = f(z_curr);
-			//std::cout << arg(z_curr)-arg(z_prev) << std::endl;
 			long double angle = AngleBetween(z_curr, z_prev);
 			int sign_sum = sign(std::real(z_curr) * std::imag(z_prev) - std::imag(z_curr) * std::real(z_prev));
 			sum += sign_sum*angle;
 			z_prev = complex(std::real(z_curr), std::imag(z_curr));
 		}
-		
-		//std::cout << sum/2/pi << std::endl;
 
-		if (fabsl(sum) / 2 / pi >= 0.9)
+		if (fabsl(sum) / 2 / pi >= 1-d_alpha)
 		{
 			if (radius_square < epsilon)
 			{
@@ -83,11 +79,12 @@ namespace FindCR
 
 std::complex<long double> a, b;
 std::vector<std::complex<long double>> roots;
-long double epsilon, radius_square;
+long double epsilon, radius_square, x_centre, y_centre;
 
 int main()
 {
 	fparser.AddConstant("pi", pi);
+	fparser.AddConstant("e", e);
 	while (true)
 	{
 		std::cout << "f(z) = ";
@@ -106,10 +103,13 @@ int main()
 	std::cin >> epsilon;
 	std::cout << "Radius square = ";
 	std::cin >> radius_square;
-	FindCR::FindRoots(radius_square, epsilon, 0, 0, roots);
-	std::cout << "\nRoots:\n";
+	std::cout << "Centre square = ";
+	std::cin >> x_centre >> y_centre;
+	FindCR::FindRoots(radius_square, epsilon, x_centre, y_centre, roots);
+	std::cout << "Roots:\n";
 	for (auto el : roots)
 	{
+		std::cout.precision(std::to_string(int(1/epsilon)).length());
 		std::cout << el << std::endl;
 	}
 }
